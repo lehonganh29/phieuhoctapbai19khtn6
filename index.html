@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Phiếu học tập tương tác</title>
+    <!-- ===== ENGINE CSS - KHÔNG CẦN SỬA ===== -->
+    <style>
+        :root {
+            --primary: #5c6bc0; /* Tím xanh */
+            --primary-light: #8e99f3;
+            --secondary: #26a69a; /* Xanh mint */
+            --secondary-light: #b2dfdb;
+            --bg-color: #f5f7fa;
+            --card-bg: #ffffff;
+            --text-main: #333333;
+            --text-muted: #666666;
+            --success: #4caf50;
+            --danger: #ef5350;
+            --border-radius: 16px;
+            --shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); line-height: 1.6; padding: 20px 10px; }
+        
+        .container { max-width: 800px; margin: 0 auto; }
+        
+        /* Typography & Headers */
+        h1, h2, h3 { color: var(--primary); margin-bottom: 15px; }
+        .header-card { background: linear-gradient(135deg, var(--primary), #3f51b5); color: white; padding: 25px; border-radius: var(--border-radius); box-shadow: var(--shadow); margin-bottom: 20px; text-align: center; }
+        .header-card h1 { color: white; margin-bottom: 5px; font-size: 1.5rem; }
+        .header-card p { font-size: 1.1rem; opacity: 0.9; }
+
+        /* Cards */
+        .card { background: var(--card-bg); padding: 20px; border-radius: var(--border-radius); box-shadow: var(--shadow); margin-bottom: 20px; border-top: 4px solid var(--primary-light); }
+        .card-title { font-size: 1.2rem; font-weight: bold; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        
+        /* Student Info */
+        .student-info { display: grid; grid-template-columns: 2fr 1fr; gap: 15px; }
+        input[type="text"] { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; outline: none; transition: 0.3s; }
+        input[type="text"]:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(92, 107, 192, 0.2); }
+
+        /* Goals */
+        .goals-list { list-style-type: none; padding-left: 0; }
+        .goals-list li { position: relative; padding-left: 25px; margin-bottom: 8px; }
+        .goals-list li::before { content: '⭐'; position: absolute; left: 0; top: 2px; font-size: 0.9rem; }
+
+        /* Matching */
+        .match-row { display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; background: #f9f9fc; padding: 10px; border-radius: 8px; }
+        @media(min-width: 600px) { .match-row { flex-direction: row; align-items: center; } }
+        .match-label { flex: 1; font-weight: 500; }
+        .match-select { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #ccc; font-size: 1rem; cursor: pointer; background: white; }
+
+        /* Multiple Choice & True/False */
+        .mcq-question { margin-bottom: 20px; }
+        .mcq-text { font-weight: 500; margin-bottom: 10px; }
+        .option-label { display: flex; align-items: center; padding: 10px 15px; background: #f0f2f5; margin-bottom: 8px; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+        .option-label:hover { background: #e8eaf6; }
+        .option-label input { margin-right: 10px; transform: scale(1.2); }
+        input:checked + span { font-weight: bold; color: var(--primary); }
+
+        /* Color / Highlight */
+        .color-options { display: flex; flex-wrap: wrap; gap: 10px; }
+        .color-btn { padding: 12px 20px; background: white; border: 2px solid var(--primary-light); border-radius: 8px; cursor: pointer; font-size: 1rem; transition: 0.3s; user-select: none; }
+        .color-btn.selected { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 2px 8px rgba(92,107,192,0.4); }
+
+        /* Drag & Drop */
+        .dd-container { display: flex; flex-direction: column; gap: 20px; }
+        .dd-pool { display: flex; flex-wrap: wrap; gap: 10px; min-height: 50px; padding: 15px; background: #e8eaf6; border-radius: 8px; border: 2px dashed #9fa8da; }
+        .dd-card { padding: 10px 15px; background: white; border: 1px solid var(--primary); border-radius: 8px; cursor: grab; font-weight: 500; box-shadow: 0 2px 4px rgba(0,0,0,0.1); touch-action: none; z-index: 10; display: inline-block;}
+        .dd-card.dragging { opacity: 0.8; transform: scale(1.05); box-shadow: 0 5px 15px rgba(0,0,0,0.2); z-index: 1000 !important; cursor: grabbing; position: absolute; pointer-events: none; }
+        .dd-card.locked { background: var(--success); color: white; border-color: #388e3c; cursor: default; pointer-events: none; }
+        
+        .dd-targets-area { display: flex; flex-direction: column; gap: 15px; }
+        .dd-target-box { min-height: 60px; padding: 15px; background: white; border: 2px dashed #ccc; border-radius: 8px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; transition: 0.3s; }
+        .dd-target-box.drag-over { background: var(--secondary-light); border-color: var(--secondary); }
+        .dd-target-title { width: 100%; font-weight: bold; color: var(--text-muted); margin-bottom: 5px; }
+
+        /* Image Drag & Drop */
+        .image-dd-wrapper { position: relative; max-width: 100%; margin: 0 auto; display: inline-block; min-height: 200px; background: #eee; border-radius: 8px; width: 100%; display: flex; justify-content: center; align-items: center; overflow: hidden; }
+        .image-dd-wrapper img { width: 100%; height: auto; border-radius: 8px; display: block; object-fit: contain; }
+        .img-target { position: absolute; background: rgba(255, 255, 255, 0.8); border: 2px dashed #333; min-width: 100px; min-height: 35px; border-radius: 6px; display: flex; align-items: center; justify-content: center; transform: translate(-50%, -50%); transition: 0.3s; }
+        .img-target.drag-over { background: rgba(38, 166, 154, 0.5); border-color: var(--secondary); }
+        .img-target .dd-card { margin: 0; padding: 5px 10px; font-size: 0.9rem; }
+        
+        /* Upload Image Button */
+        .upload-container { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; padding: 40px 20px; text-align: center; color: #666; }
+        .upload-btn { display: inline-block; padding: 10px 20px; background: var(--primary); color: white; border-radius: 8px; cursor: pointer; margin-top: 10px; font-weight: bold; transition: 0.3s; }
+        .upload-btn:hover { background: #3f51b5; }
+        input[type="file"] { display: none; }
+
+        /* Remember & Actions */
+        .remember-card { background: #fff8e1; border-top-color: #ffb300; }
+        .actions { display: flex; gap: 15px; margin-top: 20px; justify-content: center; margin-bottom: 40px;}
+        .btn { padding: 12px 25px; border: none; border-radius: 25px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 8px; color: white; }
+        .btn-submit { background: var(--primary); box-shadow: 0 4px 10px rgba(92,107,192,0.3); }
+        .btn-submit:hover { background: #3f51b5; transform: translateY(-2px); }
+        .btn-reset { background: #9e9e9e; }
+        .btn-reset:hover { background: #757575; }
+
+        /* Results Modal */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 2000; }
+        .modal-content { background: white; padding: 30px; border-radius: var(--border-radius); text-align: center; max-width: 400px; width: 90%; box-shadow: 0 10px 30px rgba(0,0,0,0.2); animation: popIn 0.4s ease-out; }
+        .score-circle { width: 100px; height: 100px; border-radius: 50%; background: var(--primary-light); color: white; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: bold; margin: 0 auto 20px; border: 5px solid var(--primary); }
+        .modal-content h2 { color: var(--primary); }
+        .modal-close { margin-top: 20px; background: var(--primary); color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; }
+
+        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        
+        /* Utility */
+        .feedback-text { font-size: 0.9rem; margin-top: 5px; font-weight: bold; display: none; }
+        .feedback-text.correct { color: var(--success); display: block; }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="app">
+        <!-- Nội dung sẽ được render bằng JavaScript -->
+    </div>
+
+    <!-- Modal Kết quả -->
+    <div class="modal-overlay" id="resultModal">
+        <div class="modal-content">
+            <h2>🎉 Hoàn thành!</h2>
+            <p style="margin-bottom: 10px; font-size: 1.1rem;" id="resName">Họ tên: </p>
+            <div class="score-circle" id="resScore">10</div>
+            <p style="font-size: 1.2rem; margin-bottom: 5px;">Số câu đúng: <strong id="resCorrect"></strong> / <strong id="resTotal"></strong></p>
+            <button class="modal-close" onclick="closeModal()">Đóng</button>
+        </div>
+    </div>
+
+    <script>
+        // =====================================================================
+        // ===== LESSON DATA - CHỈ SỬA PHẦN NÀY ĐỂ TẠO BÀI HỌC MỚI =============
+        // =====================================================================
+        const LESSON_DATA = {
+            subject: "Khoa học Tự nhiên 6",
+            lesson: "Bài 19",
+            title: "CẤU TẠO VÀ CHỨC NĂNG CÁC THÀNH PHẦN CỦA TẾ BÀO",
+            subtitle: "Phiếu học tập tương tác",
+            
+            studentInfo: {
+                namePlaceholder: "Họ và tên học sinh",
+                classPlaceholder: "Lớp"
+            },
+            
+            goals: [
+                "Trình bày được cấu tạo các thành phần chính của tế bào.",
+                "Nêu được chức năng của các thành phần chính của tế bào."
+            ],
+
+            // 1. Dạng kéo thả văn bản (Phân loại)
+            dragDropText: {
+                heading: "Câu 1: Thành phần cơ bản của tế bào",
+                instruction: "Kéo các thẻ tương ứng với thành phần CƠ BẢN của tế bào (có ở mọi tế bào) thả vào ô bên dưới.",
+                cards: [
+                    { id: "c_luc_lap", text: "Lục lạp" },
+                    { id: "c_mang", text: "Màng tế bào" },
+                    { id: "c_thanh", text: "Thành tế bào" },
+                    { id: "c_tb_chat", text: "Tế bào chất" },
+                    { id: "c_ti_the", text: "Ti thể" },
+                    { id: "c_nhan", text: "Nhân hoặc vùng nhân" }
+                ],
+                targets: [
+                    { 
+                        id: "t_co_ban", 
+                        text: "Thành phần cơ bản", 
+                        accept: ["c_mang", "c_tb_chat", "c_nhan"],
+                        max: 3
+                    }
+                ]
+            },
+
+            // 2. Dạng nối cột
+            matching: {
+                heading: "Câu 2: Chức năng các thành phần",
+                instruction: "Chọn chức năng tương ứng với từng thành phần của tế bào.",
+                items: [
+                    { id: "m1", label: "Màng tế bào", answer: "Bao bọc tế bào chất, tham gia trao đổi chất" },
+                    { id: "m2", label: "Tế bào chất", answer: "Nơi diễn ra các hoạt động trao đổi chất" },
+                    { id: "m3", label: "Nhân hoặc vùng nhân", answer: "Chứa vật chất di truyền, trung tâm điều khiển hoạt động sống" }
+                ],
+                choices: [
+                    "Chứa vật chất di truyền, trung tâm điều khiển hoạt động sống",
+                    "Nơi diễn ra các hoạt động trao đổi chất",
+                    "Bao bọc tế bào chất, tham gia trao đổi chất",
+                    "Quang hợp tổng hợp chất hữu cơ"
+                ]
+            },
+
+            // 3. Dạng kéo thả hình ảnh
+            dragDropImage: {
+                heading: "Câu 3: Chú thích sơ đồ tế bào",
+                instruction: "Tải ảnh sơ đồ tế bào (Hình 19.1) lên, sau đó kéo các nhãn bên trên và thả vào đúng vị trí trên sơ đồ.",
+                image: {
+                    src: "", // Để trống để kích hoạt nút tải ảnh lên
+                    alt: "Sơ đồ các thành phần chính của tế bào"
+                },
+                cards: [
+                    { id: "img_c1", text: "Màng tế bào" },
+                    { id: "img_c2", text: "Vật chất di truyền" },
+                    { id: "img_c3", text: "Tế bào chất" },
+                    { id: "img_c4", text: "Nhân" }
+                ],
+                // Vị trí (top, left) tính bằng phần trăm (%) so với kích thước hình ảnh để responsive
+                targets: [
+                    { id: "img_t1", accept: ["img_c1"], top: "25%", left: "45%" }, // Vị trí trỏ màng tế bào
+                    { id: "img_t2", accept: ["img_c3"], top: "67%", left: "42%" }, // Vị trí trỏ tế bào chất
+                    { id: "img_t3", accept: ["img_c2"], top: "23%", left: "80%" }, // Vị trí trỏ vật chất di truyền
+                    { id: "img_t4", accept: ["img_c4"], top: "63%", left: "85%" }  // Vị trí trỏ nhân
+                ]
+            },
+
+            // 4. Dạng trắc nghiệm
+            multipleChoice: {
+                heading: "Câu 4: Chọn đáp án đúng nhất",
+                questions: [
+                    {
+                        id: "mcq1",
+                        text: "Thành phần nào sau đây là trung tâm điều khiển các hoạt động sống của tế bào?",
+                        options: [
+                            "Màng tế bào", 
+                            "Tế bào chất", 
+                            "Nhân hoặc vùng nhân", 
+                            "Lục lạp"
+                        ],
+                        answer: 2 // Index của đáp án đúng (bắt đầu từ 0)
+                    }
+                ]
+            },
+
+            // 5. Dạng Đúng/Sai
+            trueFalse: {
+                heading: "Câu 5: Đánh giá các phát biểu sau",
+                questions: [
+                    { id: "tf1", text: "Mọi loại tế bào đều được bao bọc bởi màng tế bào.", answer: "T" },
+                    { id: "tf2", text: "Tế bào chất là nơi chứa vật chất di truyền của tế bào.", answer: "F" }
+                ]
+            },
+
+            // 6. Dạng tô màu / Highlight
+            color: {
+                heading: "Câu 6: Tô màu đáp án",
+                instruction: "Nhấn chọn phương án thể hiện ĐÚNG đặc điểm của 'Tế bào chất'.",
+                options: [
+                    { id: "col1", text: "Bao bọc bên ngoài tế bào" },
+                    { id: "col2", text: "Nằm giữa màng tế bào và nhân/vùng nhân" },
+                    { id: "col3", text: "Là trung tâm điều khiển tế bào" }
+                ],
+                answer: "col2" // ID của phương án đúng
+            },
+
+            remember: "Tế bào được cấu tạo từ 3 thành phần cơ bản: Màng tế bào (bao bọc, tham gia trao đổi chất), Tế bào chất (nơi diễn ra các hoạt động trao đổi chất), và Nhân hoặc vùng nhân (chứa vật chất di truyền, trung tâm điều khiển các hoạt động sống)."
+        };
+
+        // =====================================================================
+        // ===== ENGINE JAVASCRIPT - KHÔNG CẦN SỬA PHẦN NÀY ====================
+        // =====================================================================
+        
+        let state = {
+            totalQuestions: 0,
+            answers: {
+                matching: {},
+                mcq: {},
+                tf: {},
+                color: null,
+                ddText: 0, // số thẻ kéo đúng
+                ddImg: 0   // số thẻ kéo đúng
+            }
+        };
+
+        // Hàm xáo trộn mảng
+        function shuffle(array) {
+            let currentIndex = array.length, randomIndex;
+            while (currentIndex != 0) {
+                randomIndex = Math.floor(Math.random() * currentIndex);
+                currentIndex--;
+                [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+            }
+            return array;
+        }
+
+        function initApp() {
+            const app = document.getElementById('app');
+            let html = '';
+
+            // Header
+            html += `
+                <div class="header-card">
+                    <p style="font-weight:bold; color: #e8eaf6;">${LESSON_DATA.subject} - ${LESSON_DATA.lesson}</p>
+                    <h1>${LESSON_DATA.title}</h1>
+                    <p>${LESSON_DATA.subtitle}</p>
+                </div>
+            `;
+
+            // Thông tin học sinh
+            html += `
+                <div class="card">
+                    <div class="card-title">👤 Thông tin học sinh</div>
+                    <div class="student-info">
+                        <input type="text" id="studentName" placeholder="${LESSON_DATA.studentInfo.namePlaceholder}">
+                        <input type="text" id="studentClass" placeholder="${LESSON_DATA.studentInfo.classPlaceholder}">
+                    </div>
+                </div>
+            `;
+
+            // Mục tiêu
+            if (LESSON_DATA.goals && LESSON_DATA.goals.length > 0) {
+                html += `
+                    <div class="card">
+                        <div class="card-title">🎯 Mục tiêu bài học</div>
+                        <ul class="goals-list">
+                            ${LESSON_DATA.goals.map(g => `<li>${g}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+
+            // Render Drag Drop Text
+            if (LESSON_DATA.dragDropText) {
+                state.totalQuestions += LESSON_DATA.dragDropText.targets.reduce((sum, t) => sum + t.accept.length, 0);
+                let cardsHtml = shuffle([...LESSON_DATA.dragDropText.cards]).map(c => 
+                    `<div class="dd-card" data-id="${c.id}" data-type="ddText">${c.text}</div>`
+                ).join('');
+                
+                let targetsHtml = LESSON_DATA.dragDropText.targets.map(t => `
+                    <div class="dd-target-box" data-id="${t.id}" data-accept="${t.accept.join(',')}">
+                        <div class="dd-target-title">${t.text}</div>
+                    </div>
+                `).join('');
+
+                html += `
+                    <div class="card">
+                        <div class="card-title">🧩 ${LESSON_DATA.dragDropText.heading}</div>
+                        <p style="margin-bottom: 10px;"><em>${LESSON_DATA.dragDropText.instruction}</em></p>
+                        <div class="dd-container">
+                            <div class="dd-pool" id="ddTextPool">${cardsHtml}</div>
+                            <div class="dd-targets-area">${targetsHtml}</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Render Matching
+            if (LESSON_DATA.matching) {
+                state.totalQuestions += LESSON_DATA.matching.items.length;
+                html += `
+                    <div class="card">
+                        <div class="card-title">🔗 ${LESSON_DATA.matching.heading}</div>
+                        <p style="margin-bottom: 15px;"><em>${LESSON_DATA.matching.instruction}</em></p>
+                        <div>
+                `;
+                
+                let optionsHtml = `<option value="">-- Chọn đáp án --</option>`;
+                LESSON_DATA.matching.choices.forEach(c => {
+                    optionsHtml += `<option value="${c}">${c}</option>`;
+                });
+
+                LESSON_DATA.matching.items.forEach(item => {
+                    html += `
+                        <div class="match-row">
+                            <div class="match-label">${item.label}</div>
+                            <select class="match-select" data-id="${item.id}" data-answer="${item.answer}">
+                                ${optionsHtml}
+                            </select>
+                        </div>
+                    `;
+                });
+                html += `</div></div>`;
+            }
+
+            // Render Drag Drop Image (Có hỗ trợ tải ảnh lên)
+            if (LESSON_DATA.dragDropImage) {
+                state.totalQuestions += LESSON_DATA.dragDropImage.targets.length;
+                let imgCardsHtml = shuffle([...LESSON_DATA.dragDropImage.cards]).map(c => 
+                    `<div class="dd-card" data-id="${c.id}" data-type="ddImg">${c.text}</div>`
+                ).join('');
+                
+                let imgTargetsHtml = LESSON_DATA.dragDropImage.targets.map(t => `
+                    <div class="img-target" data-id="${t.id}" data-accept="${t.accept.join(',')}" style="top: ${t.top}; left: ${t.left}; display: none;">
+                    </div>
+                `).join('');
+
+                let imgContentHtml = '';
+                if(LESSON_DATA.dragDropImage.image.src) {
+                    // Nếu có link ảnh sẵn
+                    imgContentHtml = `
+                        <img id="mainImage" src="${LESSON_DATA.dragDropImage.image.src}" alt="${LESSON_DATA.dragDropImage.image.alt}" onload="showTargets()">
+                        ${imgTargetsHtml}
+                    `;
+                } else {
+                    // Nếu không có link ảnh, hiện nút upload
+                    imgContentHtml = `
+                        <div class="upload-container" id="uploadContainer">
+                            <p>Không có hình ảnh được cung cấp.</p>
+                            <label class="upload-btn">
+                                Tải ảnh lên từ máy tính
+                                <input type="file" id="imageUpload" accept="image/png, image/jpeg, image/jpg" onchange="handleImageUpload(event)">
+                            </label>
+                        </div>
+                        <img id="mainImage" src="" alt="${LESSON_DATA.dragDropImage.image.alt}" style="display:none;" onload="showTargets()">
+                        ${imgTargetsHtml}
+                    `;
+                }
+
+                html += `
+                    <div class="card">
+                        <div class="card-title">🖼️ ${LESSON_DATA.dragDropImage.heading}</div>
+                        <p style="margin-bottom: 10px;"><em>${LESSON_DATA.dragDropImage.instruction}</em></p>
+                        <div class="dd-container">
+                            <div class="dd-pool" id="ddImgPool">${imgCardsHtml}</div>
+                            <div style="text-align: center;">
+                                <div class="image-dd-wrapper" id="imageDdWrapper">
+                                    ${imgContentHtml}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Render MCQ
+            if (LESSON_DATA.multipleChoice) {
+                state.totalQuestions += LESSON_DATA.multipleChoice.questions.length;
+                html += `
+                    <div class="card">
+                        <div class="card-title">✅ ${LESSON_DATA.multipleChoice.heading}</div>
+                `;
+                LESSON_DATA.multipleChoice.questions.forEach((q, idx) => {
+                    html += `<div class="mcq-question"><div class="mcq-text">${idx+1}. ${q.text}</div>`;
+                    q.options.forEach((opt, oIdx) => {
+                        html += `
+                            <label class="option-label">
+                                <input type="radio" name="${q.id}" value="${oIdx}" data-answer="${q.answer}">
+                                <span>${opt}</span>
+                            </label>
+                        `;
+                    });
+                    html += `</div>`;
+                });
+                html += `</div>`;
+            }
+
+            // Render True/False
+            if (LESSON_DATA.trueFalse) {
+                state.totalQuestions += LESSON_DATA.trueFalse.questions.length;
+                html += `
+                    <div class="card">
+                        <div class="card-title">⚖️ ${LESSON_DATA.trueFalse.heading}</div>
+                `;
+                LESSON_DATA.trueFalse.questions.forEach((q, idx) => {
+                    html += `
+                        <div class="mcq-question">
+                            <div class="mcq-text">${idx+1}. ${q.text}</div>
+                            <label class="option-label">
+                                <input type="radio" name="${q.id}" value="T" data-answer="${q.answer}">
+                                <span>Đúng</span>
+                            </label>
+                            <label class="option-label">
+                                <input type="radio" name="${q.id}" value="F" data-answer="${q.answer}">
+                                <span>Sai</span>
+                            </label>
+                        </div>
+                    `;
+                });
+                html += `</div>`;
+            }
+
+            // Render Color
+            if (LESSON_DATA.color) {
+                state.totalQuestions += 1;
+                html += `
+                    <div class="card">
+                        <div class="card-title">🎨 ${LESSON_DATA.color.heading}</div>
+                        <p style="margin-bottom: 10px;"><em>${LESSON_DATA.color.instruction}</em></p>
+                        <div class="color-options" id="colorContainer" data-answer="${LESSON_DATA.color.answer}">
+                `;
+                LESSON_DATA.color.options.forEach(opt => {
+                    html += `<div class="color-btn" data-id="${opt.id}" onclick="selectColor('${opt.id}')">${opt.text}</div>`;
+                });
+                html += `</div></div>`;
+            }
+
+            // Remember
+            if (LESSON_DATA.remember) {
+                html += `
+                    <div class="card remember-card">
+                        <div class="card-title" style="color: #f57c00;">🧠 Ghi nhớ</div>
+                        <p><strong>${LESSON_DATA.remember}</strong></p>
+                    </div>
+                `;
+            }
+
+            // Actions
+            html += `
+                <div class="actions">
+                    <button class="btn btn-reset" onclick="resetQuiz()">🔄 Làm lại</button>
+                    <button class="btn btn-submit" onclick="submitQuiz()">📤 Nộp bài – Tính điểm</button>
+                </div>
+            `;
+
+            app.innerHTML = html;
+            initDragDrop();
+            
+            // Xử lý hiển thị target nếu đã có link ảnh
+            if(LESSON_DATA.dragDropImage && LESSON_DATA.dragDropImage.image.src) {
+               showTargets();
+            }
+        }
+
+        // Logic xử lý upload ảnh
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.getElementById('mainImage');
+                    const uploadContainer = document.getElementById('uploadContainer');
+                    const wrapper = document.getElementById('imageDdWrapper');
+                    
+                    img.src = e.target.result;
+                    img.style.display = 'block';
+                    uploadContainer.style.display = 'none';
+                    wrapper.style.background = 'transparent'; // Bỏ nền xám
+                    
+                    showTargets();
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Hiển thị các hộp kéo thả sau khi ảnh đã load
+        function showTargets() {
+            document.querySelectorAll('.img-target').forEach(target => {
+                target.style.display = 'flex';
+            });
+        }
+
+        // Logic Color Type
+        function selectColor(id) {
+            document.querySelectorAll('.color-btn').forEach(btn => btn.classList.remove('selected'));
+            document.querySelector(`.color-btn[data-id="${id}"]`).classList.add('selected');
+            state.answers.color = id;
+        }
+
+        // Khởi tạo kéo thả (Hỗ trợ Touch & Mouse qua Pointer Events)
+        function initDragDrop() {
+            const cards = document.querySelectorAll('.dd-card');
+            let draggedCard = null;
+            let startX, startY, initialX, initialY;
+
+            cards.forEach(card => {
+                card.addEventListener('pointerdown', handlePointerDown);
+            });
+
+            function handlePointerDown(e) {
+                if (e.target.classList.contains('locked')) return;
+                
+                draggedCard = e.target;
+                
+                // Tránh lỗi scroll trên điện thoại khi drag
+                draggedCard.setPointerCapture(e.pointerId);
+                
+                const rect = draggedCard.getBoundingClientRect();
+                initialX = rect.left;
+                initialY = rect.top;
+                startX = e.clientX;
+                startY = e.clientY;
+
+                draggedCard.classList.add('dragging');
+                draggedCard.style.width = rect.width + 'px';
+                
+                document.body.appendChild(draggedCard); // Đưa ra body để không bị khuất
+                draggedCard.style.left = initialX + 'px';
+                draggedCard.style.top = initialY + window.scrollY + 'px';
+
+                document.addEventListener('pointermove', handlePointerMove);
+                document.addEventListener('pointerup', handlePointerUp);
+            }
+
+            function handlePointerMove(e) {
+                if (!draggedCard) return;
+                e.preventDefault(); // Chống scroll
+                
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+                
+                draggedCard.style.transform = `translate(${dx}px, ${dy}px)`;
+                
+                // Highlight target
+                const touchX = e.clientX;
+                const touchY = e.clientY;
+                
+                document.querySelectorAll('.dd-target-box, .img-target').forEach(target => {
+                    // Chỉ highlight nếu target đang hiển thị (ảnh đã được load)
+                    if(target.style.display === 'none') return; 
+                    
+                    const tRect = target.getBoundingClientRect();
+                    if (touchX > tRect.left && touchX < tRect.right && 
+                        touchY > tRect.top && touchY < tRect.bottom) {
+                        target.classList.add('drag-over');
+                    } else {
+                        target.classList.remove('drag-over');
+                    }
+                });
+            }
+
+            function handlePointerUp(e) {
+                if (!draggedCard) return;
+                
+                document.removeEventListener('pointermove', handlePointerMove);
+                document.removeEventListener('pointerup', handlePointerUp);
+                draggedCard.releasePointerCapture(e.pointerId);
+                
+                draggedCard.classList.remove('dragging');
+                draggedCard.style.transform = '';
+                draggedCard.style.width = '';
+                draggedCard.style.position = '';
+                draggedCard.style.left = '';
+                draggedCard.style.top = '';
+
+                let dropped = false;
+                const touchX = e.clientX;
+                const touchY = e.clientY;
+
+                const targets = document.querySelectorAll('.dd-target-box, .img-target');
+                for (let target of targets) {
+                    target.classList.remove('drag-over');
+                    // Bỏ qua nếu target đang bị ẩn (chưa có ảnh)
+                    if(target.style.display === 'none') continue;
+
+                    const tRect = target.getBoundingClientRect();
+                    
+                    if (touchX > tRect.left && touchX < tRect.right && touchY > tRect.top && touchY < tRect.bottom) {
+                        const accepted = target.dataset.accept.split(',');
+                        const cardId = draggedCard.dataset.id;
+                        
+                        if (accepted.includes(cardId)) {
+                            // Thành công
+                            target.appendChild(draggedCard);
+                            draggedCard.classList.add('locked');
+                            
+                            // Cập nhật điểm tạm thời
+                            if (draggedCard.dataset.type === 'ddText') state.answers.ddText++;
+                            if (draggedCard.dataset.type === 'ddImg') state.answers.ddImg++;
+                            
+                            showMiniConfetti(e.clientX, e.clientY);
+                            dropped = true;
+                        }
+                        break;
+                    }
+                }
+
+                if (!dropped) {
+                    // Trả về pool cũ
+                    const poolId = draggedCard.dataset.type === 'ddText' ? 'ddTextPool' : 'ddImgPool';
+                    document.getElementById(poolId).appendChild(draggedCard);
+                }
+                
+                draggedCard = null;
+            }
+        }
+
+        // Tính điểm và nộp bài
+        function submitQuiz() {
+            let correctCount = 0;
+
+            // Chấm Matching
+            if (LESSON_DATA.matching) {
+                document.querySelectorAll('.match-select').forEach(select => {
+                    if (select.value === select.dataset.answer) correctCount++;
+                });
+            }
+
+            // Chấm MCQ
+            if (LESSON_DATA.multipleChoice) {
+                LESSON_DATA.multipleChoice.questions.forEach(q => {
+                    const selected = document.querySelector(`input[name="${q.id}"]:checked`);
+                    if (selected && selected.value == q.answer) correctCount++;
+                });
+            }
+
+            // Chấm T/F
+            if (LESSON_DATA.trueFalse) {
+                LESSON_DATA.trueFalse.questions.forEach(q => {
+                    const selected = document.querySelector(`input[name="${q.id}"]:checked`);
+                    if (selected && selected.value == q.answer) correctCount++;
+                });
+            }
+
+            // Chấm Color
+            if (LESSON_DATA.color) {
+                if (state.answers.color === document.getElementById('colorContainer').dataset.answer) {
+                    correctCount++;
+                }
+            }
+
+            // Cộng điểm kéo thả
+            correctCount += state.answers.ddText;
+            correctCount += state.answers.ddImg;
+
+            // Tính điểm / 10
+            let score = (correctCount / state.totalQuestions) * 10;
+            score = Math.round(score * 10) / 10;
+
+            // Hiển thị kết quả
+            const name = document.getElementById('studentName').value || "Học sinh Ẩn danh";
+            document.getElementById('resName').innerText = "Họ tên: " + name;
+            document.getElementById('resCorrect').innerText = correctCount;
+            document.getElementById('resTotal').innerText = state.totalQuestions;
+            document.getElementById('resScore').innerText = score;
+            
+            document.getElementById('resultModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('resultModal').style.display = 'none';
+        }
+
+        function resetQuiz() {
+            if(confirm("Bạn có chắc muốn làm lại từ đầu? Mọi kết quả sẽ bị xóa.")) {
+                // Reset select
+                document.querySelectorAll('select').forEach(s => s.value = "");
+                
+                // Reset radio
+                document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+                
+                // Reset color
+                document.querySelectorAll('.color-btn').forEach(btn => btn.classList.remove('selected'));
+                state.answers.color = null;
+
+                // Reset Drag Drop
+                document.querySelectorAll('.dd-card').forEach(card => {
+                    card.classList.remove('locked');
+                    const poolId = card.dataset.type === 'ddText' ? 'ddTextPool' : 'ddImgPool';
+                    document.getElementById(poolId).appendChild(card);
+                });
+                state.answers.ddText = 0;
+                state.answers.ddImg = 0;
+
+                // Không reset ảnh đã tải lên để học sinh không phải tải lại ảnh
+
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        // Hiệu ứng hạt giấy nhỏ khi thả đúng
+        function showMiniConfetti(x, y) {
+            const colors = ['#4caf50', '#8bc34a', '#cddc39', '#ffeb3b'];
+            for(let i=0; i<5; i++) {
+                const el = document.createElement('div');
+                el.style.position = 'fixed';
+                el.style.left = x + 'px';
+                el.style.top = y + 'px';
+                el.style.width = '8px';
+                el.style.height = '8px';
+                el.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                el.style.borderRadius = '50%';
+                el.style.pointerEvents = 'none';
+                el.style.zIndex = '9999';
+                el.style.transition = 'all 0.5s ease-out';
+                document.body.appendChild(el);
+                
+                setTimeout(() => {
+                    el.style.transform = `translate(${(Math.random()-0.5)*100}px, ${(Math.random()-0.5)*100 - 50}px) scale(0)`;
+                    el.style.opacity = '0';
+                }, 10);
+
+                setTimeout(() => el.remove(), 500);
+            }
+        }
+
+        // Khởi động
+        window.onload = initApp;
+
+    </script>
+</body>
+</html>
+```eof
+
+### Những thay đổi đã thực hiện:
+1. **Trong `LESSON_DATA`**: Thuộc tính `src` của ảnh trong `dragDropImage` đã được để trống `""`.
+2. **Trong ENGINE**:
+    * Khi `src` trống, hệ thống sẽ tự động hiển thị khu vực **"Tải ảnh lên từ máy tính"** (nút màu xanh).
+    * Khi người dùng chọn file ảnh từ máy của họ (png, jpg), đoạn script `FileReader` sẽ đọc ảnh và chèn trực tiếp vào đúng vị trí để thay thế khu vực tải lên.
+    * Các ô nét đứt (vị trí đích để thả thẻ vào) ban đầu sẽ được ẩn đi. Ngay khi ảnh (do người dùng tải lên) load xong, các ô này mới xuất hiện đè lên bức ảnh ở đúng tọa độ phần trăm `%` đã cài đặt trong DATA. 
+
+Bạn chỉ cần lưu file HTML mới này lại, mở trên trình duyệt, nhấn nút Tải ảnh ở Câu 3 và chọn tấm hình sơ đồ tế bào trống, bạn sẽ thấy chức năng hoạt động hoàn hảo!
